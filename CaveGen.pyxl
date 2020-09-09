@@ -1,0 +1,168 @@
+
+def CreateCave(width, height):
+    let seed = local_time().millisecond
+    
+    debug_print("Seed = " + seed)
+    
+    //seed = 57
+    set_random_seed(seed)
+    let rnd_offset = random(0,100.0)
+    let grid = []
+    let noise_octaves = floor(max(2, random_gaussian(2,1)))
+    
+    let tolerance = 0
+    let toleranceInc = 1 / (height * 1.25)
+    for 0 <= y < height:
+        push(grid, 0);
+        for 0 < x < width - 1:
+            
+            let v = noise(noise_octaves, rnd_offset + x * 0.1, rnd_offset + y * 0.1) * 0.5 + 0.5
+            if (v < tolerance):
+                push(grid, 0)
+            else:
+                push(grid, -1)
+        push(grid, 0);
+        tolerance += toleranceInc
+
+    let potentialCaves = []
+    
+    let areaId = 1
+    for 0 <= y < height - 1:
+        for 0 <= x < width:
+            if (grid[x + y * width] == -1):
+                let rect = [x,y,x,y]
+                FloodFill(grid, x, y, width, height, -1, areaId, rect)
+                potentialCaves.push(rect)
+                if (areaId > 1):
+                    // Find area center
+                    let centerPos = FindCenter(grid, width, height, rect, areaId)
+                    // Dig from here, in a certain direction
+                    let digPoints = []
+                    let digCount = 0
+                    while (size(digPoints) == 0):
+                        let dir = xy(random(-1,1), random(0,-1))
+                        dir = direction(dir)
+                        if (digCount == 5):
+                            dir = xy(0,-1)
+                        digPoints = FindDig(centerPos, dir, grid, width, height, areaId, 1)
+                        digCount++
+                        if (digCount > 5):
+                            break
+                        
+                    Dig(digPoints, 1, grid, width, height, areaId)
+                areaId++
+                
+    for 0 ≤ idx < width * height:
+        let v = grid[idx]
+        if (v == 0):
+            grid[idx] = 1
+        else:
+            grid[idx] = 0
+            
+    for 0 ≤ y ≤ height - 1:
+        grid[y * width] = 1
+        grid[width - 1 + y* width] = 1
+        
+    for 0<= x ≤ width - 1:
+        grid[x + (height - 1) * width] = 1
+    
+    return grid
+    
+def FindCenter(grid, width, height, rect, areaId):
+    let cx = floor((rect[2] + rect[0]) * 0.5)
+    let cy = floor((rect[3] + rect[1]) * 0.5)
+    
+    if (grid[cx + cy * width] == areaId): 
+        return xy(cx, cy)
+        
+    for 0 < n < 5:
+        for cy-n ≤ y ≤ cy+n:
+            if (y < 0): continue
+            if (y ≥ height): break
+            for cx-n ≤ x ≤ cx+n:
+                if (x <0): continue
+                if (x ≥ width): break
+                if (grid[x + y * width] == areaId):
+                    return xy(x,y)
+                    
+    return xy(cx, cy)
+
+def FindDig(start, dir, grid, width, height, areaId, untilAreaId):
+    let currentPos = start;
+    let ret = []
+    
+    if (abs(dir.x) > abs(dir.y)):
+        dir.y = dir.y/abs(dir.x)
+        dir.x = dir.x/abs(dir.x)
+    else:
+        dir.x = dir.x/abs(dir.y)
+        dir.y = dir.y/abs(dir.y)
+    
+    while (true):
+        let ix = round(currentPos.x)
+        let iy = round(currentPos.y)
+        if ((ix < 0) || (ix ≥ width) || (iy < 0) || (iy ≥ height)):
+            return []
+        
+        if (grid[ix+iy*width] == untilAreaId):
+            return ret
+            
+        push(ret, xy(ix, iy))
+        
+        currentPos = currentPos + dir
+        
+def Dig(digPoints, radius, grid, width, height, areaId):
+    for p in digPoints:
+        for p.y - radius ≤ y ≤ p.y + radius:
+            if (y < 0): continue
+            if (y ≥ height): continue
+            for p.x - radius ≤ x ≤ p.x + radius:
+                if (x < 0): continue
+                if (x ≥ width): continue
+                grid[x + y * width] = areaId
+    
+def FloodFill(grid, startX, startY, width, height, source, areaId, rect):
+    let queue = [ xy(startX,startY) ]
+    while (size(queue) > 0):
+        let pos = pop(queue)
+        let idx = pos.x + pos.y * width
+        
+        if (grid[idx] ≠ source): continue        
+                
+        grid[idx] = areaId
+        if (rect[0] > pos.x): rect[0] = pos.x
+        if (rect[2] < pos.x): rect[2] = pos.x
+        if (rect[1] > pos.y): rect[1] = pos.y
+        if (rect[3] < pos.y): rect[3] = pos.y
+        
+        if (pos.x > 0): queue.push(xy(pos.x-1, pos.y))
+        if (pos.x < width-1): queue.push(xy(pos.x+1, pos.y))
+            
+        if (pos.y > 0): queue.push(xy(pos.x, pos.y-1))
+        if (pos.y < height-1): queue.push(xy(pos.x, pos.y+1))
+
+def ReplaceFill(grid, width, height, source, dest):
+    for 0 ≤ idx < width * height:
+        if (grid[idx] == source):
+            grid[idx] = dest
+
+def ErodeFill(grid, startX, startY, width, height, areaId):
+    let queue = [ xy(startX,startY) ]
+    while (size(queue) > 0):
+        let pos = pop_front(queue)
+        let idx = pos.x + pos.y * width
+        let val = grid[idx]
+        
+        if (val == areaId):
+            continue
+        if (val == 1):
+            return
+        
+        grid[idx] = areaId
+        
+        if (pos.x > 2): queue.push(xy(pos.x-1, pos.y))
+        if (pos.x < width-2): queue.push(xy(pos.x+1, pos.y))
+            
+        if (pos.y > 2): queue.push(xy(pos.x, pos.y-1))
+        if (pos.y < height-4): queue.push(xy(pos.x, pos.y+1))
+        

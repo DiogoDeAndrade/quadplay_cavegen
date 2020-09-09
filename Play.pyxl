@@ -1,0 +1,40 @@
+Play
+════════════════════════════════════════════════════════════════════════
+
+let pos = xy(½ SCREEN_SIZE.x, 132)
+let flip = xy(1, 1)
+
+let width = 96
+let height = 96
+let cellSize = 2
+let grid = CreateCave(width, height)
+let frame = 0
+    
+frame
+────────────────────────────────────────────────────────────────────────
+
+frame++
+
+set_background(rgb(20%, 50%, 80%))
+
+draw_text(font, "Noise Caves", xy(½ SCREEN_SIZE.x, SCREEN_SIZE.y - 20), rgba(1,1,1,1), ∅, ∅, 0, 0)
+
+for 0 <= y < height:
+    for 0 <= x < width:
+        let v = grid[y * width + x]
+        let c = rgba(0,0,0,1)
+        if (v == 1): c = rgba(1,0,0,1)
+        if (v == 2): c = rgba(1,1,0,1)
+        if (v == 3): c = rgba(0,1,0,1)
+        if (v == 4): c = rgba(0,1,1,1)
+        if (v == 5): c = rgba(0,0,1,1)
+        if (v == 6): c = rgba(1,0,1,1)
+        if (v == 7): c = rgba(1,0.5,0,1)
+        if (v == 8): c = rgba(0.5,0.5,0,1)
+        if (v == 9): c = rgba(0,0.5,0,1)
+        if (v == 10): c = rgba(0,0.5,0.5,1)
+        if (v == 11): c = rgba(0,0.5,1,1)
+        if (v == 12): c = rgba(0.5,0.0,0.5,1)
+        if (v == 13): c = rgba(0.5,0.5,0.5,1)
+        
+        draw_corner_rect(xy(x*cellSize, y*cellSize), xy(cellSize, cellSize), c)
