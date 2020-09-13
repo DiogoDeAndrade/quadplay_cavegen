@@ -17,7 +17,8 @@
     "assets": {
         "font": "quad://fonts/deja-8.font.json",
         "astronaut": "quad://sprites/kenney-alien-yellow-16x32.sprite.json",
-        "cave_tileset_sprite": "cave_tileset.sprite.json"
+        "cave_tileset_sprite": "cave_tileset.sprite.json",
+        "empty_tilemap_map": "empty_tilemap.map.json"
     },
     "version": 0,
     "min_players": 1,
