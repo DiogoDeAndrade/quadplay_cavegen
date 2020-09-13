@@ -27,6 +27,10 @@ let tile_rules = {
     14: cave_tileset_sprite[1][0],
     15: cave_tileset_sprite[1][1],
 }
+let h = random(0,1)
+let colorTop = hsv(random(0,1), 0.8, 0.8)
+let colorBottom = hsv(random(0,1), 0.4, 0.2)
+
 let cameraX = 0
 let cameraY = 0
     
@@ -37,7 +41,14 @@ frame++
 
 set_background(rgb(20%, 50%, 80%))
 
-draw_text(font, "Noise Caves", xy(½ SCREEN_SIZE.x, SCREEN_SIZE.y - 20), rgba(1,1,1,1), ∅, ∅, 0, 0)
+
+for 0 ≤ y ≤ SCREEN_SIZE.y:
+    let t = clamp((y + cameraY) / ((cellSize * height)- SCREEN_SIZE.y), 0, 1)
+    
+    let c = perceptual_lerp_color(colorTop, colorBottom, t)
+    draw_line(xy(0,y), xy(SCREEN_SIZE.x,y), c)
+
+//draw_text(font, "Noise Caves", xy(½ SCREEN_SIZE.x, SCREEN_SIZE.y - 20), rgba(1,1,1,1), ∅, ∅, 0, 0)
 
 /*for 0 <= y < height:
     for 0 <= x < width:
@@ -80,7 +91,7 @@ for 0 <= y < height:
                 
         tile = tile_rules[k]
         if (tile ≠ ∅):
-            draw_sprite(tile, xy((x + 0.5) * cellSize + cameraX, (y + 0.5) * cellSize + cameraY))
+            draw_sprite(tile, xy((x + 0.5) * cellSize - cameraX, (y + 0.5) * cellSize - cameraY))
         else:
             debug_print("Can't find rule", k, "for coord", x, y)
             exit = true
@@ -90,6 +101,6 @@ for 0 <= y < height:
     
 let cameraMove = gamepad_array[0].xy
 
-cameraX -= cameraMove.x * 2
-cameraY -= cameraMove.y * 2
+cameraX += cameraMove.x * 2
+cameraY += cameraMove.y * 2
         
