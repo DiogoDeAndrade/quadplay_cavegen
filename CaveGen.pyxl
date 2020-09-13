@@ -1,5 +1,5 @@
 
-def CreateCave(width, height):
+def CreateCave(width, height, startProb default 0, endProb default 1):
     let seed = local_time().millisecond
     
     debug_print("Seed = " + seed)
@@ -10,8 +10,8 @@ def CreateCave(width, height):
     let grid = []
     let noise_octaves = floor(max(2, random_gaussian(2,1)))
     
-    let tolerance = 0
-    let toleranceInc = 1 / (height * 1.25)
+    let tolerance = startProb
+    let toleranceInc = (endProb - startProb) / (height * 1.25)
     for 0 <= y < height:
         push(grid, 0);
         for 0 < x < width - 1:
